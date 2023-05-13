@@ -10,6 +10,7 @@ python-dotenv = "*"
 psycopg2-binary = "*"
 djangorestframework-simplejwt = "*"
 drf-yasg = "*"
+"backports.zoneinfo" = "*"
 
 [dev-packages]
 
