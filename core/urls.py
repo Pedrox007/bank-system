@@ -9,4 +9,7 @@ urlpatterns = [
     path('check-balance/',
         check_balance,
         name='check-balance'),
+    path('credit/', 
+        credit_account,
+        name='credit_account'),
 ]
