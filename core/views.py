@@ -103,3 +103,43 @@ def credit_account(request):
         return Response({"error": f"Account with number {account_number} not found."}, status=HTTP_404_NOT_FOUND)
     except Exception:
         return Response({"error": "An error occurred while processing the request."}, status=HTTP_400_BAD_REQUEST)
+    
+
+@swagger_auto_schema(
+    method='post',
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            'number': openapi.Schema(type=openapi.TYPE_STRING, description='The Account Number.'),
+            'amount': openapi.Schema(type=openapi.TYPE_NUMBER, description='The amount to debit from the account.')
+        }
+    ),
+    responses={
+        200: openapi.Response('Success', AccountSerializer),
+        400: "Bad Request",
+        404: "Not Found"
+    }
+)
+@api_view(["POST"])
+def debit_account(request):
+    account_number = request.data.get('number')
+    amount = request.data.get('amount')
+
+    if not account_number:
+        return Response({"error": "Account number is required in request body."}, status=HTTP_400_BAD_REQUEST)
+    if not amount or amount <= 0:
+        return Response({"error": "Amount must be greater than 0."}, status=HTTP_400_BAD_REQUEST)
+
+    try:
+        account = Account.objects.get(number=account_number)
+        if account.balance < amount:
+            return Response({"error": "Insufficient balance."}, status=HTTP_400_BAD_REQUEST)
+        account.balance -= amount
+        account.save()
+        serializer = AccountSerializer(account)
+        return Response(serializer.data)
+    except Account.DoesNotExist:
+        return Response({"error": f"Account with number {account_number} not found."}, status=HTTP_404_NOT_FOUND)
+    except Exception:
+        return Response({"error": "An error occurred while processing the request."}, status=HTTP_400_BAD_REQUEST)
+

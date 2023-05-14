@@ -1,6 +1,6 @@
 from django.urls import path
 
-from core.views import create_account, check_balance, credit_account
+from core.views import create_account, check_balance, credit_account,debit_account
 
 urlpatterns = [
     path('create-account/',
@@ -12,4 +12,7 @@ urlpatterns = [
     path('credit/', 
         credit_account,
         name='credit_account'),
+    path('debit/', 
+         debit_account,
+        name='debit_account'),
 ]
