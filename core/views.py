@@ -132,8 +132,6 @@ def debit_account(request):
 
     try:
         account = Account.objects.get(number=account_number)
-        if account.balance < amount:
-            return Response({"error": "Insufficient balance."}, status=HTTP_400_BAD_REQUEST)
         account.balance -= amount
         account.save()
         serializer = AccountSerializer(account)
@@ -142,4 +140,3 @@ def debit_account(request):
         return Response({"error": f"Account with number {account_number} not found."}, status=HTTP_404_NOT_FOUND)
     except Exception:
         return Response({"error": "An error occurred while processing the request."}, status=HTTP_400_BAD_REQUEST)
-
