@@ -1,6 +1,6 @@
 from django.urls import path
 
-from core.views import create_account, check_balance
+from core.views import create_account, check_balance, credit_account
 
 urlpatterns = [
     path('create-account/',
