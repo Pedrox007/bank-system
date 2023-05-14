@@ -2,10 +2,11 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_201_CREATED
+from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_201_CREATED,HTTP_404_NOT_FOUND
 
 from core.models import Account
 from core.serializers import AccountSerializer
+
 
 
 @swagger_auto_schema(
@@ -39,3 +40,30 @@ def create_account(request):
             response_status = HTTP_400_BAD_REQUEST
 
     return Response(response_message, status=response_status)
+
+
+@swagger_auto_schema(
+    method='get',
+    manual_parameters=[
+        openapi.Parameter('account_number', openapi.IN_QUERY, description="Account Number", type=openapi.TYPE_STRING)
+    ],
+    responses={
+        200: openapi.Response('Success', AccountSerializer),
+        400: "Bad Request",
+        404: "Not Found"
+    }
+)
+
+@api_view(["GET"])
+def check_balance(request):
+    account_number = request.query_params.get('account_number')
+    if not account_number:
+        return Response({"error": "Account number is required in query parameters."}, status=HTTP_400_BAD_REQUEST)
+    try:
+        account = Account.objects.get(number=account_number)
+        serializer = AccountSerializer(account)
+        return Response(serializer.data)
+    except Account.DoesNotExist:
+        return Response({"error": f"Account with number {account_number} not found."}, status=HTTP_404_NOT_FOUND)
+    except Exception:
+        return Response({"error": "An error occurred while processing the request."}, status=HTTP_400_BAD_REQUEST)
