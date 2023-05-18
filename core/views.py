@@ -13,7 +13,8 @@ from core.serializers import AccountSerializer
     request_body=openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
-            'number': openapi.Schema(type=openapi.TYPE_STRING, description='The Account Number.')
+            'number': openapi.Schema(type=openapi.TYPE_STRING, description='The Account Number.'),
+            'type': openapi.Schema(type=openapi.TYPE_STRING, description='The Account Type.', enum=['default', 'bonus'])
         }
     ),
     responses={
@@ -27,11 +28,21 @@ def create_account(request):
     response_status = HTTP_201_CREATED
 
     account_number = request.data.get("number", None)
+    account_type = request.data.get("type", Account.TypeChoices.DEFAULT)
     if not account_number:
         response_message = {"error": "Account number is required"}
         response_status = HTTP_400_BAD_REQUEST
     else:
-        account, created = Account.objects.get_or_create(balance=0, defaults={"number": account_number})
+        account = {
+            'number': account_number,
+            'type': account_type,
+            'score': None
+        }
+
+        if account_type == Account.TypeChoices.BONUS:
+            account['score'] = 10
+        
+        account, created = Account.objects.get_or_create(balance=0, **account)
         if created:
             response_message = AccountSerializer(account).data
         else:
@@ -95,6 +106,10 @@ def credit_account(request):
     try:
         account = Account.objects.get(number=account_number)
         account.balance += amount
+
+        if account.type == Account.TypeChoices.BONUS:
+            account.score += int(amount / 100)
+
         account.save()
         serializer = AccountSerializer(account)
         return Response(serializer.data)
@@ -175,6 +190,9 @@ def transfer_between_accounts(request):
     try:
         destination_account = Account.objects.get(number=destination_account_number)
         destination_account.balance += amount
+
+        if destination_account.type == Account.TypeChoices.BONUS:
+            destination_account.score += int(amount / 200)
     except Account.DoesNotExist:
         return Response({"error": f"Account with number {destination_account_number} not found."}, status=HTTP_404_NOT_FOUND)
 
