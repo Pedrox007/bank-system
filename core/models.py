@@ -3,8 +3,9 @@ from django.db import models
 
 class Account(models.Model):
     class TypeChoices(models.TextChoices):
-        DEFAULT = 'default'
-        BONUS = 'bonus'
+        DEFAULT = "default"
+        BONUS = "bonus"
+        SAVINGS = "savings"
 
     number = models.CharField("Number", max_length=10, unique=True)
     balance = models.DecimalField("Balance", decimal_places=2, max_digits=20)
