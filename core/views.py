@@ -1,8 +1,10 @@
+import decimal
+
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_201_CREATED, HTTP_404_NOT_FOUND
+from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_201_CREATED, HTTP_404_NOT_FOUND, HTTP_200_OK
 
 from core.models import Account
 from core.serializers import AccountSerializer
@@ -14,7 +16,11 @@ from core.serializers import AccountSerializer
         type=openapi.TYPE_OBJECT,
         properties={
             'number': openapi.Schema(type=openapi.TYPE_STRING, description='The Account Number.'),
-            'type': openapi.Schema(type=openapi.TYPE_STRING, description='The Account Type.', enum=['default', 'bonus'])
+            'type': openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description='The Account Type.',
+                enum=['default', 'bonus', 'savings']
+            )
         }
     ),
     responses={
@@ -63,8 +69,6 @@ def create_account(request):
         404: "Not Found"
     }
 )
-
-
 @api_view(["GET"])
 def check_balance(request):
     account_number = request.query_params.get('account_number')
@@ -105,7 +109,7 @@ def credit_account(request):
 
     try:
         account = Account.objects.get(number=account_number)
-        account.balance += amount
+        account.balance += decimal.Decimal(amount)
 
         if account.type == Account.TypeChoices.BONUS:
             account.score += int(amount / 100)
@@ -144,7 +148,7 @@ def debit_account(request):
 
     try:
         account = Account.objects.get(number=account_number)
-        account.balance -= amount
+        account.balance -= decimal.Decimal(amount)
         account.save()
         serializer = AccountSerializer(account)
         return Response(serializer.data)
@@ -183,13 +187,13 @@ def transfer_between_accounts(request):
 
     try:
         origin_account = Account.objects.get(number=origin_account_number)
-        origin_account.balance -= amount
+        origin_account.balance -= decimal.Decimal(amount)
     except Account.DoesNotExist:
         return Response({"error": f"Account with number {origin_account_number} not found."}, status=HTTP_404_NOT_FOUND)
 
     try:
         destination_account = Account.objects.get(number=destination_account_number)
-        destination_account.balance += amount
+        destination_account.balance += decimal.Decimal(amount)
 
         if destination_account.type == Account.TypeChoices.BONUS:
             destination_account.score += int(amount / 200)
@@ -200,3 +204,53 @@ def transfer_between_accounts(request):
     destination_account.save()
     serializer = AccountSerializer([origin_account, destination_account], many=True)
     return Response(serializer.data)
+
+
+@swagger_auto_schema(
+    method='post',
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            'number': openapi.Schema(type=openapi.TYPE_STRING, description='The Account Number.'),
+            'interest_percentage': openapi.Schema(
+                type=openapi.TYPE_NUMBER,
+                description='Interest percentage to yield the amount.'
+            )
+        }
+    ),
+    responses={
+        200: openapi.Response('Success', AccountSerializer),
+        400: "Bad Request",
+        404: "Not Found"
+    }
+)
+@api_view(["POST"])
+def yield_interest(request):
+    response_message: dict
+    response_status = HTTP_200_OK
+
+    account_number = request.data.get('number')
+    interest_percentage = request.data.get('interest_percentage')
+
+    if not account_number:
+        response_message = {"error": "Account number is required in request body."}
+        response_status = HTTP_400_BAD_REQUEST
+    elif not interest_percentage or interest_percentage <= 0:
+        response_message = {"error": "Interest percentage must be greater than 0."}
+        response_status = HTTP_400_BAD_REQUEST
+    else:
+        try:
+            account = Account.objects.get(number=account_number)
+            if account.type != Account.TypeChoices.SAVINGS:
+                response_message = {"error": f"Account with number {account_number} is not a Savings Account."}
+                response_status = HTTP_404_NOT_FOUND
+            else:
+                account.balance *= decimal.Decimal((interest_percentage / 100) + 1)
+                account.save()
+                serializer = AccountSerializer(account)
+                response_message = serializer.data
+        except Account.DoesNotExist:
+            response_message = {"error": f"Account with number {account_number} not found."}
+            response_status = HTTP_404_NOT_FOUND
+
+    return Response(response_message, status=response_status)
