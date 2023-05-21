@@ -89,7 +89,7 @@ def credit_account(request):
 
     if not account_number:
         return Response({"error": "Account number is required in request body."}, status=HTTP_400_BAD_REQUEST)
-    if not amount or amount <= 0:
+    if not amount:
         return Response({"error": "Amount must be greater than 0."}, status=HTTP_400_BAD_REQUEST)
 
     try:
@@ -124,7 +124,7 @@ def debit_account(request):
 
     if not account_number:
         return Response({"error": "Account number is required in request body."}, status=HTTP_400_BAD_REQUEST)
-    if not amount or amount <= 0:
+    if not amount:
         return Response({"error": "Amount must be greater than 0."}, status=HTTP_400_BAD_REQUEST)
 
     try:
@@ -163,11 +163,14 @@ def transfer_between_accounts(request):
         return Response({"error": "Origin account number is required in request body."}, status=HTTP_400_BAD_REQUEST)
     if not destination_account_number:
         return Response({"error": "Destination account number is required in request body."}, status=HTTP_400_BAD_REQUEST)
-    if not amount or amount <= 0:
+    if not amount:
         return Response({"error": "Amount must be greater than 0."}, status=HTTP_400_BAD_REQUEST)
 
     try:
         origin_account = Account.objects.get(number=origin_account_number)
+        if origin_account.balance < amount:
+            return Response({"error": "Amount must be lower than Account balance."}, status=HTTP_400_BAD_REQUEST)
+
         origin_account.balance -= amount
     except Account.DoesNotExist:
         return Response({"error": f"Account with number {origin_account_number} not found."}, status=HTTP_404_NOT_FOUND)
