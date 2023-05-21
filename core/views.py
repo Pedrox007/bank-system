@@ -89,7 +89,7 @@ def credit_account(request):
 
     if not account_number:
         return Response({"error": "Account number is required in request body."}, status=HTTP_400_BAD_REQUEST)
-    if not amount:
+    if not amount or amount <= 0:
         return Response({"error": "Amount must be greater than 0."}, status=HTTP_400_BAD_REQUEST)
 
     try:
@@ -124,7 +124,7 @@ def debit_account(request):
 
     if not account_number:
         return Response({"error": "Account number is required in request body."}, status=HTTP_400_BAD_REQUEST)
-    if not amount:
+    if not amount or amount <= 0:
         return Response({"error": "Amount must be greater than 0."}, status=HTTP_400_BAD_REQUEST)
 
     try:
@@ -163,7 +163,7 @@ def transfer_between_accounts(request):
         return Response({"error": "Origin account number is required in request body."}, status=HTTP_400_BAD_REQUEST)
     if not destination_account_number:
         return Response({"error": "Destination account number is required in request body."}, status=HTTP_400_BAD_REQUEST)
-    if not amount:
+    if not amount or amount <= 0:
         return Response({"error": "Amount must be greater than 0."}, status=HTTP_400_BAD_REQUEST)
 
     try:
