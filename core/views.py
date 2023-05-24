@@ -20,7 +20,8 @@ from core.serializers import AccountSerializer
                 type=openapi.TYPE_STRING,
                 description='The Account Type.',
                 enum=['default', 'bonus', 'savings']
-            )
+            ),
+            'balance': openapi.Schema(type=openapi.TYPE_NUMBER, description='The Account Initial Balance.')
         }
     ),
     responses={
@@ -35,8 +36,12 @@ def create_account(request):
 
     account_number = request.data.get("number", None)
     account_type = request.data.get("type", Account.TypeChoices.DEFAULT)
+    account_balance = request.data.get("balance", None)
     if not account_number:
         response_message = {"error": "Account number is required"}
+        response_status = HTTP_400_BAD_REQUEST
+    elif not account_balance and account_type == Account.TypeChoices.SAVINGS:
+        response_message = {"error": "Account balance is required for Savings Account."}
         response_status = HTTP_400_BAD_REQUEST
     else:
         account = {
@@ -48,7 +53,7 @@ def create_account(request):
         if account_type == Account.TypeChoices.BONUS:
             account['score'] = 10
         
-        account, created = Account.objects.get_or_create(balance=0, **account)
+        account, created = Account.objects.get_or_create(balance=account_balance, **account)
         if created:
             response_message = AccountSerializer(account).data
         else:
