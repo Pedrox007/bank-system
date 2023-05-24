@@ -187,6 +187,9 @@ def transfer_between_accounts(request):
 
     try:
         origin_account = Account.objects.get(number=origin_account_number)
+        if origin_account.balance < amount:
+            return Response({"error": "Amount must be lower than Account balance."}, status=HTTP_400_BAD_REQUEST)
+
         origin_account.balance -= decimal.Decimal(amount)
     except Account.DoesNotExist:
         return Response({"error": f"Account with number {origin_account_number} not found."}, status=HTTP_404_NOT_FOUND)
