@@ -1,0 +1,10 @@
+version: '3.8'
+services:
+  banksystem_postgres:
+    image: postgres
+    environment:
+      POSTGRES_USER: banksystem
+      POSTGRES_PASSWORD: admin@123
+      POSTGRES_DB: banksystem
+    ports:
+      - 5432:5432
