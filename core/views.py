@@ -151,9 +151,17 @@ def debit_account(request):
     if not amount or amount <= 0:
         return Response({"error": "Amount must be greater than 0."}, status=HTTP_400_BAD_REQUEST)
 
+    accounts_to_check = (Account.TypeChoices.DEFAULT, Account.TypeChoices.BONUS)
     try:
         account = Account.objects.get(number=account_number)
         account.balance -= decimal.Decimal(amount)
+
+        if account.balance <= -1000 and account.type in accounts_to_check:
+            return Response(
+                {"error": "The balance must be greater than -1000 for the Bonus and Default Accounts."},
+                status=HTTP_400_BAD_REQUEST
+            )
+
         account.save()
         serializer = AccountSerializer(account)
         return Response(serializer.data)
