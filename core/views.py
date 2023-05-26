@@ -21,7 +21,7 @@ from core.serializers import AccountSerializer
                 description='The Account Type.',
                 enum=['default', 'bonus', 'savings']
             ),
-            'balance': openapi.Schema(type=openapi.TYPE_NUMBER, description='The Account Balance.')
+            'balance': openapi.Schema(type=openapi.TYPE_NUMBER, description='The Account Initial Balance.')
         }
     ),
     responses={
@@ -39,6 +39,9 @@ def create_account(request):
     account_type = request.data.get("type", Account.TypeChoices.DEFAULT)
     if not account_number or (account_balance is None and account_type == Account.TypeChoices.DEFAULT):
         response_message = {"error": "Account number and balance is required"}
+        response_status = HTTP_400_BAD_REQUEST
+    elif not account_balance and account_type == Account.TypeChoices.SAVINGS:
+        response_message = {"error": "Account balance is required for Savings Account."}
         response_status = HTTP_400_BAD_REQUEST
     else:
         account = {
@@ -149,9 +152,17 @@ def debit_account(request):
     if not amount or amount <= 0:
         return Response({"error": "Amount must be greater than 0."}, status=HTTP_400_BAD_REQUEST)
 
+    accounts_to_check = (Account.TypeChoices.DEFAULT, Account.TypeChoices.BONUS)
     try:
         account = Account.objects.get(number=account_number)
         account.balance -= decimal.Decimal(amount)
+
+        if account.balance <= -1000 and account.type in accounts_to_check:
+            return Response(
+                {"error": "The balance must be greater than -1000 for the Bonus and Default Accounts."},
+                status=HTTP_400_BAD_REQUEST
+            )
+
         account.save()
         serializer = AccountSerializer(account)
         return Response(serializer.data)
