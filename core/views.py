@@ -13,7 +13,8 @@ from core.serializers import AccountSerializer
     request_body=openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
-            'number': openapi.Schema(type=openapi.TYPE_STRING, description='The Account Number.')
+            'number': openapi.Schema(type=openapi.TYPE_STRING, description='The Account Number.'),
+            'balance': openapi.Schema(type=openapi.TYPE_NUMBER, description='The Account Balance.')
         }
     ),
     responses={
@@ -27,11 +28,13 @@ def create_account(request):
     response_status = HTTP_201_CREATED
 
     account_number = request.data.get("number", None)
-    if not account_number:
-        response_message = {"error": "Account number is required"}
+    account_balance = request.data.get("balance", None)
+    if not account_number or account_balance is None:
+        response_message = {"error": "Account number and balance is required"}
         response_status = HTTP_400_BAD_REQUEST
     else:
-        account, created = Account.objects.get_or_create(balance=0, defaults={"number": account_number})
+        account_balance = float(account_balance)
+        account, created = Account.objects.get_or_create(balance=account_balance, defaults={"number": account_number})
         if created:
             response_message = AccountSerializer(account).data
         else:
