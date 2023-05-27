@@ -40,9 +40,6 @@ def create_account(request):
     if not account_number or account_balance is None:
         response_message = {"error": "Account number and balance is required"}
         response_status = HTTP_400_BAD_REQUEST
-    elif not account_balance and account_type == Account.TypeChoices.SAVINGS:
-        response_message = {"error": "Account balance is required for Savings Account."}
-        response_status = HTTP_400_BAD_REQUEST
     else:
         account = {
             'number': account_number,
@@ -213,7 +210,7 @@ def transfer_between_accounts(request):
         destination_account.balance += decimal.Decimal(amount)
 
         if destination_account.type == Account.TypeChoices.BONUS:
-            destination_account.score += int(amount / 200)
+            destination_account.score += int(amount / 150)
     except Account.DoesNotExist:
         return Response({"error": f"Account with number {destination_account_number} not found."}, status=HTTP_404_NOT_FOUND)
 
