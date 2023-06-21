@@ -5,8 +5,10 @@ from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_201_CREATED, HTTP_4
 from core.models import Account
 from core.serializers import AccountSerializer
 
-class BankAccountServices():
-    def create_account_service(self, request):
+
+class BankAccountServices:
+    @staticmethod
+    def create_account_service(request):
         response_message: dict
         response_status = HTTP_201_CREATED
 
@@ -36,7 +38,8 @@ class BankAccountServices():
         
         return response_message, response_status
 
-    def check_ballance_and_get_account_service(self, request):
+    @staticmethod
+    def check_ballance_and_get_account_service(request):
         account_number = request.query_params.get('account_number')
         if not account_number:
             return {"error": "Account number is required in query parameters."}, HTTP_400_BAD_REQUEST
@@ -46,8 +49,9 @@ class BankAccountServices():
             return serializer.data, HTTP_200_OK
         except Account.DoesNotExist:
             return {"error": f"Account with number {account_number} not found."}, HTTP_404_NOT_FOUND
-    
-    def credit_account_service(self, request):
+
+    @staticmethod
+    def credit_account_service(request):
         account_number = request.data.get('number')
         amount = request.data.get('amount')
 
@@ -68,8 +72,9 @@ class BankAccountServices():
             return serializer.data, HTTP_200_OK
         except Account.DoesNotExist:
             return {"error": f"Account with number {account_number} not found."}, HTTP_404_NOT_FOUND
-    
-    def debit_account_service(self, request):
+
+    @staticmethod
+    def debit_account_service(request):
         account_number = request.data.get('number')
         amount = request.data.get('amount')
 
@@ -91,3 +96,40 @@ class BankAccountServices():
             return serializer.data, HTTP_200_OK
         except Account.DoesNotExist:
             return {"error": f"Account with number {account_number} not found."}, HTTP_404_NOT_FOUND
+
+    @staticmethod
+    def transfer_between_accounts(request):
+        origin_account_number = request.data.get('origin_number')
+        destination_account_number = request.data.get('destination_number')
+        amount = request.data.get('amount')
+
+        if not origin_account_number:
+            return {"error": "Origin account number is required in request body."}, HTTP_400_BAD_REQUEST
+        if not destination_account_number:
+            return {"error": "Destination account number is required in request body."}, HTTP_400_BAD_REQUEST
+        if not amount or amount <= 0:
+            return {"error": "Amount must be greater than 0."}, HTTP_400_BAD_REQUEST
+
+        try:
+            origin_account = Account.objects.get(number=origin_account_number)
+            if origin_account.balance < amount:
+                return {"error": "Amount must be lower than Account balance."}, HTTP_400_BAD_REQUEST
+
+            origin_account.balance -= decimal.Decimal(amount)
+        except Account.DoesNotExist:
+            return {"error": f"Account with number {origin_account_number} not found."}, HTTP_404_NOT_FOUND
+
+        try:
+            destination_account = Account.objects.get(number=destination_account_number)
+            destination_account.balance += decimal.Decimal(amount)
+
+            if destination_account.type == Account.TypeChoices.BONUS:
+                destination_account.score += int(amount / 150)
+        except Account.DoesNotExist:
+            return {"error": f"Account with number {destination_account_number} not found."}, HTTP_404_NOT_FOUND
+
+        origin_account.save()
+        destination_account.save()
+        serializer = AccountSerializer([origin_account, destination_account], many=True)
+
+        return serializer.data, HTTP_200_OK
