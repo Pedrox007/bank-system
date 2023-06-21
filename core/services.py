@@ -133,3 +133,34 @@ class BankAccountServices:
         serializer = AccountSerializer([origin_account, destination_account], many=True)
 
         return serializer.data, HTTP_200_OK
+
+    @staticmethod
+    def yield_interest_account(request):
+        response_message: dict
+        response_status = HTTP_200_OK
+
+        account_number = request.data.get('number')
+        interest_percentage = request.data.get('interest_percentage')
+
+        if not account_number:
+            response_message = {"error": "Account number is required in request body."}
+            response_status = HTTP_400_BAD_REQUEST
+        elif not interest_percentage or interest_percentage <= 0:
+            response_message = {"error": "Interest percentage must be greater than 0."}
+            response_status = HTTP_400_BAD_REQUEST
+        else:
+            try:
+                account = Account.objects.get(number=account_number)
+                if account.type != Account.TypeChoices.SAVINGS:
+                    response_message = {"error": f"Account with number {account_number} is not a Savings Account."}
+                    response_status = HTTP_404_NOT_FOUND
+                else:
+                    account.balance *= decimal.Decimal((interest_percentage / 100) + 1)
+                    account.save()
+                    serializer = AccountSerializer(account)
+                    response_message = serializer.data
+            except Account.DoesNotExist:
+                response_message = {"error": f"Account with number {account_number} not found."}
+                response_status = HTTP_404_NOT_FOUND
+
+        return response_message, response_status

@@ -270,3 +270,28 @@ class TransferAccountBankTest(TestCase):
         self.assertEqual(response_message[1]["number"], "2")
         self.assertEqual(float(response_message[1]["balance"]), 3500)
         self.assertEqual(response_message[1]["score"], 20)
+
+
+class YieldInterestAccountBankTest(TestCase):
+    def setUp(self):
+        self.create_savings_account_request = Request()
+        self.request = Request()
+        self.bank_account_service = BankAccountServices()
+
+        self.create_savings_account_request.data = {
+            "number": "1",
+            "type": Account.TypeChoices.SAVINGS,
+            "balance": 2000
+        }
+
+        self.bank_account_service.create_account_service(self.create_savings_account_request)
+
+    def test_transfer_with_negative_amount(self):
+        self.request.data = {
+            "number": "1",
+            "interest_percentage": 10
+        }
+
+        response_message, response_status = self.bank_account_service.yield_interest_account(self.request)
+        self.assertEqual(response_status, 200)
+        self.assertEqual(float(response_message["balance"]), 2200)
