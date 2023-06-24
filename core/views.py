@@ -31,7 +31,8 @@ from core.services import BankAccountServices
 def create_account(request):
     bank_account_service = BankAccountServices()
 
-    response_message, response_status = bank_account_service.create_account_service(request)
+    response_message, response_status = bank_account_service.create_account_service(
+        request)
 
     return Response(response_message, status=response_status)
 
@@ -39,7 +40,8 @@ def create_account(request):
 @swagger_auto_schema(
     method='get',
     manual_parameters=[
-        openapi.Parameter('account_number', openapi.IN_QUERY, description="Account Number", type=openapi.TYPE_STRING)
+        openapi.Parameter('account_number', openapi.IN_QUERY,
+                          description="Account Number", type=openapi.TYPE_STRING)
     ],
     responses={
         200: openapi.Response('Success', AccountSerializer),
@@ -51,7 +53,8 @@ def create_account(request):
 def check_balance(request):
     bank_account_service = BankAccountServices()
 
-    response_message, response_status = bank_account_service.check_ballance_and_get_account_service(request)
+    response_message, response_status = bank_account_service.check_ballance_and_get_account_service(
+        request)
 
     return Response(response_message, status=response_status)
 
@@ -75,10 +78,11 @@ def check_balance(request):
 def credit_account(request):
     bank_account_service = BankAccountServices()
 
-    response_message, response_status = bank_account_service.credit_account_service(request)
+    response_message, response_status = bank_account_service.credit_account_service(
+        request)
 
     return Response(response_message, status=response_status)
-    
+
 
 @swagger_auto_schema(
     method='post',
@@ -99,7 +103,8 @@ def credit_account(request):
 def debit_account(request):
     bank_account_service = BankAccountServices()
 
-    response_message, response_status = bank_account_service.debit_account_service(request)
+    response_message, response_status = bank_account_service.debit_account_service(
+        request)
 
     return Response(response_message, status=response_status)
 
@@ -124,7 +129,8 @@ def debit_account(request):
 def transfer_between_accounts(request):
     bank_account_service = BankAccountServices()
 
-    response_message, response_status = bank_account_service.transfer_between_accounts(request)
+    response_message, response_status = bank_account_service.transfer_between_accounts(
+        request)
 
     return Response(response_message, status=response_status)
 
@@ -151,6 +157,7 @@ def transfer_between_accounts(request):
 def yield_interest(request):
     bank_account_service = BankAccountServices()
 
-    response_message, response_status = bank_account_service.yield_interest_account(request)
+    response_message, response_status = bank_account_service.yield_interest_account(
+        request)
 
     return Response(response_message, status=response_status)
