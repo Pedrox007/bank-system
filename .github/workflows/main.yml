@@ -34,11 +34,8 @@ jobs:
       - name: Run unit tests
         run: pipenv run python manage.py test --settings=banksystem.test_settings 
 
-      - name: Set build tag
-        run: echo "build-${{ github.run_number }}" >> build-tag.txt
-
       - name: Create build tag
-        run: git tag -a ${{ env.TAG }} -m "Build ${{ env.TAG }}"
+        run: git tag build-${{ github.run_number }}
 
       - name: Push build tag
-        run: git push origin ${{ env.TAG }}
+        run: git push origin build-${{ github.run_number }}
