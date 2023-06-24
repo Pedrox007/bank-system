@@ -13,6 +13,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='account',
             name='score',
-            field=models.IntegerField(blank=True, default=None, null=True, verbose_name='Score'),
+            field=models.IntegerField(
+                blank=True, default=None, null=True, verbose_name='Score'),
         ),
     ]

@@ -1,5 +1,7 @@
+from django.contrib.auth.models import UserManager
 from django.db import models
 import uuid
+
 
 class BaseModel(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -9,7 +11,6 @@ class BaseModel(models.Model):
     class Meta:
         abstract = True
 
-from django.contrib.auth.models import UserManager
 
 class CustomUserManager(UserManager):
     def create_user(self, username, email=None, password=None, **extra_fields):
