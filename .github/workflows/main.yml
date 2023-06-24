@@ -24,13 +24,15 @@ jobs:
         run: |
           pip install pipenv
           pipenv install --dev
-          pipenv shell
 
       - name: Run linting and static analysis
         run: pipenv run flake8
 
+      - name: Set up test database
+        run: pipenv run python manage.py migrate --settings=banksystem.test_settings 
+
       - name: Run unit tests
-        run: python manage.py test
+        run: pipenv run python manage.py test --settings=banksystem.test_settings 
 
       - name: Set build tag
         run: echo "build-${{ github.run_number }}" >> build-tag.txt

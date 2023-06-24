@@ -11,6 +11,7 @@ psycopg2-binary = "*"
 djangorestframework-simplejwt = "*"
 drf-yasg = "*"
 flake8 = "*"
+autopep8 = "*"
 
 [dev-packages]
 

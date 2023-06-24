@@ -15,7 +15,8 @@ class BankAccountServices:
         account_type = request.data.get("type", Account.TypeChoices.DEFAULT)
         account_balance = request.data.get("balance", None)
         if not account_number or account_balance is None:
-            response_message = {"error": "Account number and balance is required"}
+            response_message = {
+                "error": "Account number and balance is required"}
             response_status = HTTP_400_BAD_REQUEST
         else:
             account = {
@@ -27,14 +28,14 @@ class BankAccountServices:
 
             if account_type == Account.TypeChoices.BONUS:
                 account['score'] = 10
-            
+
             account, created = Account.objects.get_or_create(**account)
             if created:
                 response_message = AccountSerializer(account).data
             else:
                 response_message = {"error": "Account already exists."}
                 response_status = HTTP_400_BAD_REQUEST
-        
+
         return response_message, response_status
 
     @staticmethod
@@ -82,7 +83,8 @@ class BankAccountServices:
         if not amount or amount <= 0:
             return {"error": "Amount must be greater than 0."}, HTTP_400_BAD_REQUEST
 
-        accounts_to_check = (Account.TypeChoices.DEFAULT, Account.TypeChoices.BONUS)
+        accounts_to_check = (Account.TypeChoices.DEFAULT,
+                             Account.TypeChoices.BONUS)
         try:
             account = Account.objects.get(number=account_number)
             account.balance -= decimal.Decimal(amount)
@@ -119,7 +121,8 @@ class BankAccountServices:
             return {"error": f"Account with number {origin_account_number} not found."}, HTTP_404_NOT_FOUND
 
         try:
-            destination_account = Account.objects.get(number=destination_account_number)
+            destination_account = Account.objects.get(
+                number=destination_account_number)
             destination_account.balance += decimal.Decimal(amount)
 
             if destination_account.type == Account.TypeChoices.BONUS:
@@ -129,7 +132,8 @@ class BankAccountServices:
 
         origin_account.save()
         destination_account.save()
-        serializer = AccountSerializer([origin_account, destination_account], many=True)
+        serializer = AccountSerializer(
+            [origin_account, destination_account], many=True)
 
         return serializer.data, HTTP_200_OK
 
@@ -142,24 +146,29 @@ class BankAccountServices:
         interest_percentage = request.data.get('interest_percentage')
 
         if not account_number:
-            response_message = {"error": "Account number is required in request body."}
+            response_message = {
+                "error": "Account number is required in request body."}
             response_status = HTTP_400_BAD_REQUEST
         elif not interest_percentage or interest_percentage <= 0:
-            response_message = {"error": "Interest percentage must be greater than 0."}
+            response_message = {
+                "error": "Interest percentage must be greater than 0."}
             response_status = HTTP_400_BAD_REQUEST
         else:
             try:
                 account = Account.objects.get(number=account_number)
                 if account.type != Account.TypeChoices.SAVINGS:
-                    response_message = {"error": f"Account with number {account_number} is not a Savings Account."}
+                    response_message = {
+                        "error": f"Account with number {account_number} is not a Savings Account."}
                     response_status = HTTP_404_NOT_FOUND
                 else:
-                    account.balance *= decimal.Decimal((interest_percentage / 100) + 1)
+                    account.balance *= decimal.Decimal(
+                        (interest_percentage / 100) + 1)
                     account.save()
                     serializer = AccountSerializer(account)
                     response_message = serializer.data
             except Account.DoesNotExist:
-                response_message = {"error": f"Account with number {account_number} not found."}
+                response_message = {
+                    "error": f"Account with number {account_number} not found."}
                 response_status = HTTP_404_NOT_FOUND
 
         return response_message, response_status

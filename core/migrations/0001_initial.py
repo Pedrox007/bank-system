@@ -14,9 +14,12 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Account',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('number', models.CharField(max_length=10, unique=True, verbose_name='Number')),
-                ('balance', models.DecimalField(decimal_places=2, max_digits=20, verbose_name='Balance')),
+                ('id', models.BigAutoField(auto_created=True,
+                 primary_key=True, serialize=False, verbose_name='ID')),
+                ('number', models.CharField(max_length=10,
+                 unique=True, verbose_name='Number')),
+                ('balance', models.DecimalField(decimal_places=2,
+                 max_digits=20, verbose_name='Balance')),
             ],
             options={
                 'verbose_name': 'Account',
