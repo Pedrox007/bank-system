@@ -13,6 +13,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='account',
             name='type',
-            field=models.CharField(choices=[('default', 'Default'), ('bonus', 'Bonus'), ('savings', 'Savings')], default='default', max_length=20, verbose_name='Type'),
+            field=models.CharField(choices=[('default', 'Default'), ('bonus', 'Bonus'), (
+                'savings', 'Savings')], default='default', max_length=20, verbose_name='Type'),
         ),
     ]
