@@ -37,7 +37,7 @@ jobs:
 
       - name: Generate package
         run: |
-          zip -r bank_system.zip ./  # Ou comando equivalente para criar o pacote
+          zip -r bank_system.zip ./
 
       - name: Upload package
         uses: actions/upload-artifact@v2
