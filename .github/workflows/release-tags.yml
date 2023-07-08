@@ -34,3 +34,13 @@ jobs:
 
       - name: Run unit tests
         run: pipenv run python manage.py test --settings=banksystem.test_settings
+
+      - name: Generate package
+        run: |
+          zip -r bank_system.zip ./  # Ou comando equivalente para criar o pacote
+
+      - name: Upload package
+        uses: actions/upload-artifact@v2
+        with:
+          name: bank_system_released
+          path: bank_system.zip
