@@ -24,7 +24,7 @@ jobs:
           pipenv install --dev
 
       - name: Check Django Build
-        run: pipenv run python manage.py check
+        run: pipenv run python manage.py check --settings=banksystem.test_settings 
 
       - name: Set up test database
         run: pipenv run python manage.py migrate --settings=banksystem.test_settings 
