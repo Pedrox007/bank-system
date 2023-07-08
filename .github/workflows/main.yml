@@ -1,4 +1,4 @@
-name: CI
+name: Develop
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - develop
 
 jobs:
-  build:
+  build-develop:
     runs-on: ubuntu-latest
 
     steps:
@@ -23,8 +23,8 @@ jobs:
           pip install pipenv
           pipenv install --dev
 
-      - name: Run linting and static analysis
-        run: pipenv run flake8
+      - name: Check Django Build
+        run: pipenv run python manage.py check
 
       - name: Set up test database
         run: pipenv run python manage.py migrate --settings=banksystem.test_settings 
