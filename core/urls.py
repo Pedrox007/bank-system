@@ -14,6 +14,7 @@ urlpatterns = [
     path('check-balance/', check_balance, name='check-balance'),
     path('credit/', credit_account, name='credit_account'),
     path('debit/', debit_account, name='debit_account'),
-    path('transfer/', transfer_between_accounts, name='transfer_between_accounts'),
+    path('transfer/', transfer_between_accounts,
+         name='transfer_between_accounts'),
     path('yield-interest/', yield_interest, name='yield_interest_account')
 ]
