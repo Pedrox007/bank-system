@@ -1,0 +1,63 @@
+name: Master-Tags
+
+on:
+  push:
+    tags:
+      - 'rel-[0-9]+.[0-9]+'
+
+jobs:
+  build-master-tags:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          pip install pipenv
+          pipenv install --dev
+
+      - name: Check Django Build
+        run: pipenv run python manage.py check --settings=banksystem.test_settings
+
+      - name: Run linting and static analysis
+        run: pipenv run flake8
+
+      - name: Set up test database
+        run: pipenv run python manage.py migrate --settings=banksystem.test_settings
+
+      - name: Run unit tests
+        run: pipenv run python manage.py test --settings=banksystem.test_settings
+
+      - name: Generate package
+        run: |
+          zip -r bank_system.zip ./
+
+      - name: Upload package
+        uses: actions/upload-artifact@v2
+        with:
+          name: bank_system_released
+          path: bank_system.zip
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_ACCESS_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/bank-system:latest
